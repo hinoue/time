@@ -1,0 +1,13 @@
+name: t
+version: 0.1.0
+
+authors:
+  - Hajime Inoue <hajime.inoue@gmail.com>
+
+targets:
+  t:
+    main: src/t.cr
+
+crystal: 0.25.1
+
+license: GPLv3
