@@ -189,12 +189,16 @@ if ARGV.size > 0
     end
 else
     sum = 0
-    File.open("#{ENV["HOME"]}/.t", "r").each_line do |line|
-        worked = T.parse_timespan(line)
-        if worked
-            puts "#{worked} (#{worked.time_worked()})" 
-            sum += worked.time_worked().total_hours
+    if File.info?("#{ENV["HOME"]}/.t")
+        File.open("#{ENV["HOME"]}/.t", "r").each_line do |line|
+            worked = T.parse_timespan(line)
+            if worked
+                puts "#{worked} (#{worked.time_worked()})" 
+                sum += worked.time_worked().total_hours
+            end
         end
+        puts "Total: #{sum}"
+    else
+        puts "TODO:  interactive mode"
     end
-    puts "Total: #{sum}"
 end
