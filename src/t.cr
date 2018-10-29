@@ -189,15 +189,33 @@ if ARGV.size > 0
     end
 else
     sum = 0
+    entries = [] of T::TimeEntry
+    #test = {} of String => Array(T::TimeEntry)
+    test = Hash(String, Array(T::TimeEntry)).new
     if File.info?("#{ENV["HOME"]}/.t")
         File.open("#{ENV["HOME"]}/.t", "r").each_line do |line|
             worked = T.parse_timespan(line)
             if worked
                 puts "#{worked} (#{worked.time_worked()})" 
+                entries.push(worked)
+                if !test.has_key?(worked.project)
+                    test[worked.project] = Array(T::TimeEntry).new
+                end
+                test[worked.project].push(worked)
                 sum += worked.time_worked().total_hours
             end
         end
-        puts "Total: #{sum}"
+        puts "---"
+        total = 0
+        test.each do |project, entries|
+            sum = 0
+            entries.each { |entry| sum += entry.time_worked.total_hours }
+            puts("#{project.ljust(30)} #{sprintf("%2.2f",sum)}")
+            total += sum
+        end
+        T.write_file(entries)
+        puts "="*35
+        puts "#{"Total".ljust(30)} #{sprintf("%2.2f", total)}"
     else
         puts "TODO:  interactive mode"
     end
