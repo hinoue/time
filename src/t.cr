@@ -8,7 +8,9 @@ extend self
 DEFAULT_FILENAME="#{ENV["HOME"]}#{File::SEPARATOR}.t"
 
 class TimeEntry
-    getter start_time, end_time, project
+    property end_time
+    getter start_time, project
+
     def initialize(@start_time : Time, end_time : Time | Nil, @project : String)
         if end_time.nil?
             @end_time = end_time
@@ -67,6 +69,12 @@ class WorkDay
                 puts "ERROR parsing #{line}"
             end
         end
+    end
+
+    def save(filename : String)
+        fout = File.open(filename, "w")
+        @worked.map { |entry| fout.puts("#{entry}\n") }
+        fout.close()
     end
 
     def initialize()
@@ -152,6 +160,7 @@ end
 
 end
 
+FILENAME = "#{ENV["HOME"]}/.t"
 #w = T::WorkDay.new()
 #print w
 #s, total = w.summary()
@@ -162,17 +171,23 @@ if ARGV.size > 0
     sum = 0
     entries = [] of T::TimeEntry
     if ARGV[0] == "in" 
+	workday = T::WorkDay.new(FILENAME)
         if ARGV.size() == 1
             time = Time.now()
         else
             time = T.parse_time(ARGV[1..-1].join(" "))
         end
+	workday.last.end_time = time
+	workday.save(FILENAME)
     elsif  ARGV[0] == "out"
+	workday = T::WorkDay.new(FILENAME)
         if ARGV.size() == 1
             time = Time.now()
         else
             time = T.parse_time(ARGV[ 1..-1].join(" "))
         end
+	workday.last.end_time = time
+	workday.save(FILENAME)
     else
         ARGV.each do |arg|
             worked = T.parse_timespan(arg) 
@@ -190,7 +205,6 @@ if ARGV.size > 0
 else
     sum = 0
     entries = [] of T::TimeEntry
-    #test = {} of String => Array(T::TimeEntry)
     test = Hash(String, Array(T::TimeEntry)).new
     if File.info?("#{ENV["HOME"]}/.t")
         File.open("#{ENV["HOME"]}/.t", "r").each_line do |line|
