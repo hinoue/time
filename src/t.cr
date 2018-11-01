@@ -85,6 +85,10 @@ class WorkDay
         @worked.last() 
     end
 
+    def start(time)
+        @worked.push(TimeEntry.new(time))
+    end
+
     def summary()
         total = 0.0
         project = Hash(String, Float32).new(0.0)
@@ -177,7 +181,7 @@ if ARGV.size > 0
         else
             time = T.parse_time(ARGV[1..-1].join(" "))
         end
-	workday.last.end_time = time
+        workday.start(time) if !time.nil?
 	workday.save(FILENAME)
     elsif  ARGV[0] == "out"
 	workday = T::WorkDay.new(FILENAME)
