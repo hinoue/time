@@ -108,7 +108,7 @@ end
 
 def parse_time(line)
     re_time = /([0-9]{1,2}:[0-9]{2})/
-    re_time = /([0-9]{1,2}:[0-9]{2})\s*(\(\w+)\)?/
+    re_time = /([0-9]{1,2}:[0-9]{2})\s*(\([\w-]+)\)?/
     match = re_time.match(line)
     if match
         init = Time.now()
@@ -119,7 +119,7 @@ def parse_time(line)
 end
 
 def parse_timespan(line)
-    re_time = /([0-9]{1,2}:[0-9]{2})(-)([0-9]{1,2}:[0-9]{2})?\s*(\((\w+)\))?/
+    re_time = /([0-9]{1,2}:[0-9]{2})(-)([0-9]{1,2}:[0-9]{2})?\s*(\(([\w-]+)\))?/
     match = re_time.match(line)
     if match
         init = Time.now()
