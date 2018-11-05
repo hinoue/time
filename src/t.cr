@@ -7,6 +7,9 @@ extend self
 
 DEFAULT_FILENAME="#{ENV["HOME"]}#{File::SEPARATOR}.t"
 
+class TimeException < Exception
+end
+
 class TimeEntry
     property end_time
     getter start_time, project
@@ -85,8 +88,12 @@ class WorkDay
         @worked.last() 
     end
 
-    def start(time)
-        @worked.push(TimeEntry.new(time))
+    def start(time, project)
+        if project.nil?
+            @worked.push(TimeEntry.new(time))
+        else
+            @worked.push(TimeEntry.new(time, nil, project))
+        end
     end
 
     def summary()
@@ -107,15 +114,15 @@ class WorkDay
 end
 
 def parse_time(line)
-    re_time = /([0-9]{1,2}:[0-9]{2})/
-    re_time = /([0-9]{1,2}:[0-9]{2})\s*(\([\w-]+)\)?/
+    re_time = /([0-9]{1,2}:[0-9]{2})\s*(\(([\w-]+)\))?/
     match = re_time.match(line)
     if match
         init = Time.now()
         time = Time.parse(match[1], "%H:%M", Time::Location.load("America/New_York"))
         time = Time.new(init.year, init.month, init.day, time.hour, time.minute)
-        return time 
+        return time, match[3]
     end
+    raise TimeException.new("Couldn't parse timeline: #{line}")
 end
 
 def parse_timespan(line)
@@ -175,20 +182,23 @@ if ARGV.size > 0
     sum = 0
     entries = [] of T::TimeEntry
     if ARGV[0] == "in" 
-	workday = T::WorkDay.new(FILENAME)
+	    workday = T::WorkDay.new(FILENAME)
         if ARGV.size() == 1
             time = Time.now()
         else
-            time = T.parse_time(ARGV[1..-1].join(" "))
+            time_string = ARGV[1..-1].join(" ")
+            time, project = T.parse_time(time_string) if !time_string.nil? 
+            puts time
+            puts project
         end
-        workday.start(time) if !time.nil?
-	workday.save(FILENAME)
+        workday.start(time, project) if !time.nil?
+    	workday.save(FILENAME)
     elsif  ARGV[0] == "out"
 	workday = T::WorkDay.new(FILENAME)
         if ARGV.size() == 1
             time = Time.now()
         else
-            time = T.parse_time(ARGV[ 1..-1].join(" "))
+            time, project = T.parse_time(ARGV[ 1..-1].join(" "))
         end
 	workday.last.end_time = time
 	workday.save(FILENAME)
