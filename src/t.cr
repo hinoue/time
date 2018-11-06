@@ -120,7 +120,6 @@ def parse_time(line)
         init = Time.now()
         time = Time.parse(match[1], "%H:%M", Time::Location.load("America/New_York"))
         time = Time.new(init.year, init.month, init.day, time.hour, time.minute)
-        return time, match[3]
     end
     raise TimeException.new("Couldn't parse timeline: #{line}")
 end
@@ -172,6 +171,40 @@ end
 end
 
 FILENAME = "#{ENV["HOME"]}/.t"
+def in_command(argv)
+    workday = T::WorkDay.new(FILENAME)
+    if argv.size() == 1
+        time = Time.now()
+    else
+        time_string = argv[1..-1].join(" ")
+        begin
+            time, project = T.parse_time(time_string) if !time_string.nil? 
+        rescue ex
+            puts "Error parsing #{time_string}"
+            exit(1)
+        end
+    end
+    workday.start(time, project) if !time.nil?
+    workday.save(FILENAME)
+end
+
+def out_command(argv)
+	workday = T::WorkDay.new(FILENAME)
+    if ARGV.size() == 1
+        time = Time.now()
+    else
+        time_string =argv[1..-1].join(" ")
+        begin
+            time, project = T.parse_time(ARGV[ 1..-1].join(" "))
+        rescue ex
+            puts "Error parsing #{time_string}"
+            exit(1)
+        end
+    end
+	workday.last.end_time = time
+	workday.save(FILENAME)
+end
+
 #w = T::WorkDay.new()
 #print w
 #s, total = w.summary()
@@ -182,26 +215,9 @@ if ARGV.size > 0
     sum = 0
     entries = [] of T::TimeEntry
     if ARGV[0] == "in" 
-	    workday = T::WorkDay.new(FILENAME)
-        if ARGV.size() == 1
-            time = Time.now()
-        else
-            time_string = ARGV[1..-1].join(" ")
-            time, project = T.parse_time(time_string) if !time_string.nil? 
-            puts time
-            puts project
-        end
-        workday.start(time, project) if !time.nil?
-    	workday.save(FILENAME)
+        in_command(ARGV)
     elsif  ARGV[0] == "out"
-	workday = T::WorkDay.new(FILENAME)
-        if ARGV.size() == 1
-            time = Time.now()
-        else
-            time, project = T.parse_time(ARGV[ 1..-1].join(" "))
-        end
-	workday.last.end_time = time
-	workday.save(FILENAME)
+        out_command(ARGV)
     else
         ARGV.each do |arg|
             worked = T.parse_timespan(arg) 
