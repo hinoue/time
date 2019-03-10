@@ -230,7 +230,9 @@ if ARGV.size > 0
         ARGV.each do |arg|
             worked = T.parse_timespan(arg) 
             if worked
-                puts "#{worked} (#{worked.time_worked()})" 
+                hours = worked.time_worked().hours()
+                mins  = worked.time_worked().minutes()
+                puts "#{worked} (#{hours}:#{sprintf("%02d", mins)})"
                 entries.push(worked)
                 sum += worked.time_worked().total_hours()
             end
@@ -248,7 +250,9 @@ else
         File.open("#{ENV["HOME"]}/.t", "r").each_line do |line|
             worked = T.parse_timespan(line)
             if worked
-                puts "#{worked} (#{worked.time_worked()})" 
+                hours = worked.time_worked().hours()
+                mins  = worked.time_worked().minutes()
+                puts "#{worked} (#{hours}:#{sprintf("%02d", mins)})"
                 entries.push(worked)
                 if !test.has_key?(worked.project)
                     test[worked.project] = Array(T::TimeEntry).new
@@ -257,20 +261,19 @@ else
                 sum += worked.time_worked().total_hours
             end
         end
+        T.write_file(entries)
         puts "---"
         total = 0
         test.to_a.sort() { |a, b| a[0] <=> b[0] }.each do |val|
-        #test.each do |project, entries|
             project = val[0]
             entries = val[1]
             sum = 0
             entries.each { |entry| sum += entry.time_worked.total_hours }
-            puts("#{project.ljust(30)} #{sprintf("%2.2f",sum)}")
+            puts("#{project.ljust(30)} #{sprintf("%2.2f",sum).rjust(6)}")
             total += sum
         end
-        T.write_file(entries)
-        puts "="*35
-        puts "#{"Total".ljust(30)} #{sprintf("%2.2f", total)}"
+        puts "="*37
+        puts "#{"Total".ljust(30)} #{sprintf("%2.2f", total).rjust(6)}"
     else
         puts "TODO:  interactive mode"
     end
