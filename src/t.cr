@@ -38,6 +38,14 @@ class TimeEntry
         @project = "Default"
     end    
 
+    def <(other)
+        self.project < other.project
+    end
+
+    def <=(other)
+        self.project <= other.project
+    end
+
     def time_worked()
         tmp = @end_time
         if tmp.nil?
@@ -228,7 +236,7 @@ if ARGV.size > 0
             end
         end
         puts "---"
-        puts entries.join("\n")
+        puts entries.sort().join("\n")
         T.write_file(entries)
         puts "Total: #{sum}"
     end
@@ -251,7 +259,10 @@ else
         end
         puts "---"
         total = 0
-        test.each do |project, entries|
+        test.to_a.sort() { |a, b| a[0] <=> b[0] }.each do |val|
+        #test.each do |project, entries|
+            project = val[0]
+            entries = val[1]
             sum = 0
             entries.each { |entry| sum += entry.time_worked.total_hours }
             puts("#{project.ljust(30)} #{sprintf("%2.2f",sum)}")
