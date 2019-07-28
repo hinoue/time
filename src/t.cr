@@ -46,6 +46,10 @@ class TimeEntry
         self.project <= other.project
     end
 
+    def <=>(other)
+        self.project <=> other.project
+    end
+
     def time_worked()
         tmp = @end_time
         if tmp.nil?
